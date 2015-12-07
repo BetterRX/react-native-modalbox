@@ -84,7 +84,7 @@ var ModalBox = React.createClass({
       swipeToClose: false,
       height: screen.height,
       width: screen.width,
-      dataSource: ds.cloneWithRows(this.props.list)
+      dataSource: this.props.list ? ds.cloneWithRows(this.props.list) : ds
     };
   },
 
