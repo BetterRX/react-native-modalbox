@@ -8,7 +8,8 @@ var {
   Animated,
   TouchableWithoutFeedback,
   Dimensions,
-  Modal
+  Modal,
+  ListView
 } = React;
 
 var screen          = Dimensions.get('window');
