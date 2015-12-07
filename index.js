@@ -9,7 +9,9 @@ var {
   TouchableWithoutFeedback,
   Dimensions,
   Modal,
-  ListView
+  ListView,
+  TouchableOpacity,
+  Text
 } = React;
 
 var screen          = Dimensions.get('window');
@@ -93,8 +95,8 @@ var ModalBox = React.createClass({
 
   componentWillReceiveProps: function(props) {
     if (typeof props.isOpen == "undefined") return;
-    if (nextProps.list !== this.props.list) {
-      this.setState({dataSource: ds.cloneWithRows(nextProps.list)});
+    if (props.list !== this.props.list) {
+      this.setState({dataSource: ds.cloneWithRows(props.list)});
     }
 
     if (props.isOpen)
