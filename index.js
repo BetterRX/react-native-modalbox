@@ -8,7 +8,10 @@ var {
   Animated,
   TouchableWithoutFeedback,
   Dimensions,
-  Modal
+  Modal,
+  ListView,
+  TouchableOpacity,
+  Text
 } = React;
 
 var screen          = Dimensions.get('window');
@@ -35,6 +38,8 @@ var styles = StyleSheet.create({
 
 });
 
+var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => (r1 !== r2)});
+
 var ModalBox = React.createClass({
 
   propTypes: {
@@ -57,6 +62,7 @@ var ModalBox = React.createClass({
 
   getDefaultProps: function () {
     return {
+      tapToClose: true,
       swipeToClose: true,
       swipeThreshold: 50,
       aboveStatusBar: true,
@@ -64,7 +70,8 @@ var ModalBox = React.createClass({
       backdrop: true,
       backdropOpacity: 0.5,
       backdropColor: "black",
-      backdropContent: null
+      backdropContent: null,
+      list: null
     };
   },
 
@@ -77,7 +84,8 @@ var ModalBox = React.createClass({
       isAnimateOpen: false,
       swipeToClose: false,
       height: screen.height,
-      width: screen.width
+      width: screen.width,
+      dataSource: this.props.list ? ds.cloneWithRows(this.props.list) : ds
     };
   },
 
@@ -88,6 +96,10 @@ var ModalBox = React.createClass({
 
   componentWillReceiveProps: function(props) {
     if (typeof props.isOpen == "undefined") return;
+    if (props.list !== this.props.list) {
+      this.setState({dataSource: ds.cloneWithRows(props.list)});
+    }
+
     if (props.isOpen)
       this.open();
     else
@@ -176,7 +188,7 @@ var ModalBox = React.createClass({
   },
 
   /*
-   * Close animation for the modal, will move down 
+   * Close animation for the modal, will move down
    */
   animateClose: function() {
     if (this.state.isAnimateOpen) {
@@ -241,7 +253,7 @@ var ModalBox = React.createClass({
       inSwipeArea = true;
       return true;
     };
-    
+
     /* Fix 3d touch bug related issue https://github.com/facebook/react-native/issues/3082*/
     var onPanShouldMove = (evt, state) => {
       if (state.dx === 0 || state.dy === 0) {
@@ -269,14 +281,29 @@ var ModalBox = React.createClass({
   },
 
   /*
-   * Render the backdrop element 
+   * Event called when item is selected from ListView
+   */
+  onSelect: function(rowData) {
+    if (this.props.onSelect) this.props.onSelect(rowData);
+    this.close();
+  },
+
+  onTapClose: function(){
+    console.log(this.props.tapToClose)
+    if(this.props.tapToClose){
+      this.close();
+    }
+  },
+
+  /*
+   * Render the backdrop element
    */
   renderBackdrop: function() {
     var backdrop  = [];
 
     if (this.props.backdrop) {
       backdrop = (
-        <TouchableWithoutFeedback onPress={this.close}>
+        <TouchableWithoutFeedback onPress={this.onTapClose}>
           <Animated.View style={[styles.backdrop, {opacity: this.state.backdropOpacity}]}>
             <View style={[styles.backdrop, {backgroundColor:this.props.backdropColor, opacity: this.props.backdropOpacity}]}/>
             {this.props.backdropContent || []}
@@ -286,6 +313,25 @@ var ModalBox = React.createClass({
     }
 
     return backdrop;
+  },
+
+  /*
+   * Render ListView row
+   */
+  renderRow: function(rowData) {
+    var separator = <View style={styles.separator}/>;
+    if (rowData === this.props.list[0]) {
+      separator = {};
+    }
+
+    return (
+      <View>
+        {separator}
+        <TouchableOpacity onPress={() => this.onSelect(rowData)}>
+          <Text style={styles.rowText}>{rowData}</Text>
+        </TouchableOpacity>
+      </View>
+    );
   },
 
   /*
@@ -305,6 +351,9 @@ var ModalBox = React.createClass({
          style={[styles.wrapper, this.props.style, {transform: [{translateY: this.state.position}, {translateX: offsetX}]} ]}
          {...pan}>
           {this.props.children}
+          <ListView
+            dataSource={this.state.dataSource}
+            renderRow={(rowData) => this.renderRow(rowData)}/>
         </Animated.View>
       </Overlay>
     );
