@@ -289,7 +289,6 @@ var ModalBox = React.createClass({
   },
 
   onTapClose: function(){
-    console.log(this.props.tapToClose)
     if(this.props.tapToClose){
       this.close();
     }
